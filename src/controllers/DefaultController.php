@@ -18,17 +18,11 @@ class DefaultController extends Controller
      */
     public function actions(): array
     {
-        if (is_callable($this->module->scanDir)) {
-            $scanDir = call_user_func($this->module->scanDir);
-        } else {
-            $scanDir = $this->module->scanDir;
-        }
         return [
             'json' => [
                 'class' => 'Junior\Yii2Swagger\actions\OpenAPIRenderer',
-                'cache' => null,
                 // Тhe list of directories that contains the swagger annotations.
-                'scanDir' => $scanDir,
+                'scanDir' => $this->module->scanDir,
             ],
         ];
     }

@@ -5,9 +5,9 @@ namespace Junior\Yii2Swagger\actions;
 use OpenApi\Annotations\OpenApi;
 use Yii;
 use yii\base\Action;
-use yii\caching\Cache;
-use yii\di\Instance;
 use yii\web\Response;
+use OpenApi\Generator;
+use OpenApi\Util;
 
 /**
  * Class OpenAPIRenderer is responsible for generating the JSON spec.
@@ -27,36 +27,11 @@ class OpenAPIRenderer extends Action
     public $scanOptions = [];
 
     /**
-     * @var Cache|array|string the cache used to improve generating api documentation performance. This can be one of the followings:
-     *
-     * - an application component ID (e.g. `cache`)
-     * - a configuration array
-     * - a [[yii\caching\Cache]] object
-     *
-     * When this is not set, it means caching is not enabled
-     */
-    public $cache = 'cache';
-
-    /**
-     * @var int default duration in seconds before the cache will expire
-     */
-    public $cacheDuration = 360;
-
-    /**
-     * @var string the key used to store swagger data in cache
-     */
-    public $cacheKey = 'api-swagger-cache';
-
-    /**
      * @inheritdoc
      */
     public function init(): void
     {
         parent::init();
-
-        if ($this->cache !== null) {
-            $this->cache = Instance::ensure($this->cache, Cache::class);
-        }
     }
 
     /**
@@ -76,13 +51,11 @@ class OpenAPIRenderer extends Action
      */
     protected function getSwaggerDocumentation(): OpenApi
     {
-        if (!$this->cache instanceof Cache) {
-            return \OpenApi\scan($this->scanDir, $this->scanOptions);
-        }
-
-        return $this->cache->getOrSet($this->cacheKey, function () {
-            return \OpenApi\scan($this->scanDir, $this->scanOptions);
-        }, $this->cacheDuration);
+        $directories = is_array($this->scanDir) ?
+            array_map(function(string $path) { return Yii::getAlias($path);}, $this->scanDir) :
+            Yii::getAlias($this->scanDir);
+        $openApi = Generator::scan(Util::finder($directories), $this->scanOptions);
+        return $openApi;
     }
 
     /**
