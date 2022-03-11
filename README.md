@@ -44,12 +44,10 @@ Configure as below:
 ```
 $config['modules']['swagger'] = [
     'class' => 'Junior\Yii2Swagger\Module',
-    'scanDir' => function() {
-        return [
-            \Yii::getAlias('@app/controllers'),
-            \Yii::getAlias('@app/models'),
-        ];
-    },
+    'scanDir' => [
+        '@app/controllers',
+        '@app/models',
+    ],
 ];
 ```
 
